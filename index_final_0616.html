@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>踏茶大文山｜探索台灣茶文化</title>
+
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #2d5016;
+            --light-green: #4a7c59;
+            --accent-green: #6b8e23;
+            --primary-brown: #8b4513;
+            --heading-green: #ecf39e;
+            --light-brown: #cd853f;
+            --cream: #f5f5dc;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--primary-green);
+            background-color: var(--cream);
+        }
+
+        /* 頁首 */
+        header {
+            background: linear-gradient(135deg, var(--primary-green), var(--light-brown));
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--white);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+            color: var(--heading-green);
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--white);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background-color: var(--light-brown);
+            transform: translateY(-2px);
+        }
+
+        .mobile-menu {
+            display: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* 內文 */
+        main {
+            margin-top: 80px;
+            min-height: calc(100vh - 160px);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 首頁幻燈片 */
+        .slideshow-container {
+            position: relative;
+            max-width: 100%;
+            margin: auto;
+            height: 500px;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slide-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            color: white;
+            padding: 2rem;
+        }
+
+        .slide-content h2 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: black 0.1em 0.1em 0.2em;
+        }
+
+        .slide-content p {
+            font-size: 1.2rem;
+            text-shadow: black 0.1em 0.1em 0.2em;
+        }
+
+        /* 地圖 */
+        .map-section {
+            padding: 4rem 2rem;
+            background-color: var(--white);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 2rem;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 地圖內容 */
+        .content-section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tea-area {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tea-area h3 {
+            color: var(--primary-green);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 3px solid var(--light-brown);
+            padding-bottom: 0.5rem;
+        }
+
+        .tea-area-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .tea-area img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        /* 製茶流程 */
+        .process-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .process-step:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .process-step .step-number {
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 2rem;
+            flex-shrink: 0;
+        }
+
+        .process-step .step-content h4 {
+            color: var(--primary-green);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 影音資源 */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .video-card {
+            background-color: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .video-card iframe {
+            width: 100%;
+            height: 200px;
+        }
+
+        .video-card .card-content {
+            padding: 1.5rem;
+        }
+
+        /* 關於我們 */
+        .author-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .author-card {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .author-card .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+
+        /* 回到頂端 */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 頁尾 */
+        footer {
+            background: linear-gradient(135deg, var(--primary-green), var(--light-brown));
+            color: var(--white);
+            padding: 3rem 2rem 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            color: var(--heading-green);
+            margin-bottom: 1rem;
+        }
+
+        .footer-section a {
+            color: var(--white);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--light-brown);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--primary-green);
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            nav ul.active {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .tea-area-content {
+                grid-template-columns: 1fr;
+            }
+
+            .process-step {
+                flex-direction: column !important;
+                text-align: center;
+            }
+
+            .process-step .step-number {
+                margin: 0 0 1rem 0;
+            }
+
+            .slide-content h2 {
+                font-size: 1.8rem;
+            }
+
+            .slide-content p {
+                font-size: 1rem;
+            }
+        }
+
+        /* Custom Tooltip Styles */
+        .leaflet-tooltip {
+            max-width: 300px !important;
+            width: max-content !important;
+            white-space: normal !important;
+            min-width: 200px;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .tooltip-content img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .tooltip-content h2 {
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .tooltip-content p {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-brown);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 頁首 -->
+    <header>
+        <div class="header-container">
+            <a href="#" class="logo" onclick="showPage('home')">
+                <i class="fas fa-leaf"></i>
+                <h1>踏茶大文山 </h1>
+            </a>
+            <nav>
+                <ul id="nav-menu">
+                    <li><a href="#" onclick="showPage('home')" class="nav-link active">首頁</a></li>
+                    <li><a href="#" onclick="showPage('history')" class="nav-link">歷史脈絡</a></li>
+                    <li><a href="#" onclick="showPage('tourism')" class="nav-link">觀光亮點</a></li>
+                    <li><a href="#" onclick="showPage('technique')" class="nav-link">製茶流程</a></li>
+                    <li><a href="#" onclick="showPage('videos')" class="nav-link">影音資源</a></li>
+                    <li><a href="#" onclick="showPage('about')" class="nav-link">關於我們</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容 -->
+    <main>
+        <!-- 首頁 -->
+        <div id="home" class="page active">
+            <!-- 首頁幻燈片 -->
+            <div class="slideshow-container">
+                <div class="slide active">
+                    <img src="https://img.rezio.io/size/786a668f-09b0-413d-814b-9648d0d19d27/f4bad5b5-8c7f-4ac7-9ce8-dcd8c5d712e7/ffd9fbb5-7c4c-49db-afae-50adb6cf0db7.jpg"
+                        width='1200' height='500'>
+                    <div class="slide-content">
+                        <h2>貓空 Maokong</h2>
+                        <p>—— 臺北市郊的茶香秘境，以文山包種茶及鐵觀音聞名</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="https://www.sundaytour.com.tw/upfiles/chinese/attractions/tw_attractions_caty01626674319.jpg"
+                        width='1200' height='500'>
+                    <div class="slide-content">
+                        <h2>坪林 Pinglin</h2>
+                        <p>—— 翠綠山巒中的茶香傳奇，文山包種茶重鎮</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="https://scontent.ftpe4-1.fna.fbcdn.net/v/t39.30808-6/469431135_122204432156033554_9098794021841226485_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=833d8c&_nc_ohc=zcT8GYH-euAQ7kNvwFiu04x&_nc_oc=Adl4H6X7tPiQZoJSBCiSrCqhEIEuP9l_MjadTwXIAvpT336_5yWMaQuRmtqflO3lJQo&_nc_zt=23&_nc_ht=scontent.ftpe4-1.fna&_nc_gid=rHqfQMK-Q7BHR0-MYYxpUQ&oh=00_AfMAcCUZGI-nseYq_6Knu5s9aCcjYoNx27BoXR-W8QsGtw&oe=685437EA"
+                        width='1200' height='500'>
+                    <div class="slide-content">
+                        <h2>深坑 Shenkeng</h2>
+                        <p>—— 古樸山城中的茶韻飄香，滋味清新，包裝精製</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="https://res.klook.com/images/fl_lossy.progressive,q_65/c_fill,w_1295,h_720/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/mqgv6i6a8c2w8e6rx1bl/%E6%96%B0%E5%8C%97%EF%BD%9C%E7%9F%B3%E7%A2%87%E8%8C%B6%E9%84%89%E5%8D%8A%E6%97%A5%E9%81%8A.jpg"
+                        width='1200' height='500'>
+                    <div class="slide-content">
+                        <h2>石碇 Shiding</h2>
+                        <p>—— 自然茶園散佈山林，東方美人茶享譽盛名</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="https://suntravel.tw/wp-content/uploads/2023/07/b98091b0-d218-47d4-80d9-f7dd66263cdd.jpg"
+                        width='1200' height='500'>
+                    <div class="slide-content">
+                        <h2>南港 Nangang</h2>
+                        <p>—— 臺灣包種茶發源地，擁有百年製茶文化</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 地圖 -->
+            <section class="map-section">
+                <h2 class="section-title">大文山茶區分布地圖</h2>
+                <p style="text-align: center; font-size: 1.2rem; color: var(--primary-brown); margin-bottom: 3rem;">
+                    以連結新店溪流域上游的景美溪、北勢溪等二格山系與南港山系的貓空木柵、南港舊庄、深坑、石碇、坪林等地區為範疇</p>
+                <div id="map"></div>
+            </section>
+        </div>
+
+        <!-- 歷史脈絡 -->
+        <div id="history" class="page">
+            <div class="content-section">
+                <h2 class="section-title">歷史脈絡</h2>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>貓空</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%236b8e23'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E貓空茶園%3C/text%3E%3C/svg%3E"
+                            alt="貓空茶園">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>坪林</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%234a7c59'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E坪林茶區%3C/text%3E%3C/svg%3E"
+                            alt="坪林茶區">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>南港舊庄</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%232d5016'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E南港舊庄%3C/text%3E%3C/svg%3E"
+                            alt="南港舊庄茶區">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>深坑</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%238b4513'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E深坑茶區%3C/text%3E%3C/svg%3E"
+                            alt="深坑茶區">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>石碇</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%23cd853f'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E石碇茶區%3C/text%3E%3C/svg%3E"
+                            alt="石碇茶區">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 觀光亮點 -->
+        <div id="tourism" class="page">
+            <div class="content-section">
+                <h2 class="section-title">觀光亮點</h2>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>貓空</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%236b8e23'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E貓空茶園%3C/text%3E%3C/svg%3E"
+                            alt="貓空茶園">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>坪林</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%234a7c59'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E坪林茶區%3C/text%3E%3C/svg%3E"
+                            alt="坪林茶區">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>南港舊庄</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%232d5016'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E南港舊庄%3C/text%3E%3C/svg%3E"
+                            alt="南港舊庄茶區">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>深坑</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%238b4513'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E深坑茶區%3C/text%3E%3C/svg%3E"
+                            alt="深坑茶區">
+                    </div>
+                </div>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>石碇</h3>
+                    <div class="tea-area-content">
+                        <div>
+                            <p>選取您希望 [產生隨機文字] 活動包含在隨機文字字串中的項目選項。 在您選取的每個選項的 [最小數量] 欄位中，輸入要包含在字串中的這些字元數目下限。 所有 [最小數量] 字段的總數不得超過您在 [文字長度] 字段中輸入的數位。
+                            </p>
+                        </div>
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='250'%3E%3Crect width='100%25' height='100%25' fill='%23cd853f'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='16' fill='white'%3E石碇茶區%3C/text%3E%3C/svg%3E"
+                            alt="石碇茶區">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 製茶流程 -->
+        <div id="technique" class="page">
+            <div class="content-section">
+                <h2 class="section-title">製茶流程</h2>
+                <p style="text-align: center; font-size: 1.2rem; color: var(--primary-brown); margin-bottom: 3rem;">
+                    從茶菁到完成品，每一個步驟都是傳統製茶流程中的關鍵</p>
+
+                <div class="process-step" data-aos="fade-right" data-aos-duration="1000">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>採茶菁</h4>
+                        <p>茶菁採收以嫩葉與嫩芽為主，依茶菁長勢不同而有一心二葉、一心三葉等標準。茶菁的完整度關係到茶葉製造的品質，採茶過程中不能損傷葉片，否則將會降低茶葉的品質。經驗豐富的採茶師傅能夠精準判斷茶葉的成熟度。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-left" data-aos-duration="1000">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>日光萎凋</h4>
+                        <p>採茶後的茶菁收集放在室外，以陽光的熱能加速葉片中水分的蒸發，隨著氧化的化學變化而發酵。青綠色的葉片經過日光萎凋作用後，漸漸轉為暗綠色，葉片因水分蒸發消失開始軟化，為後續製茶步驟做好準備。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-right" data-aos-duration="1000">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>靜置及攪拌</h4>
+                        <p>經過日光萎凋後的茶菁移至室內靜置可使葉片水分緩慢持續消散，並配合人工攪拌茶菁促使其進行內部發酵作用。透過適當的攪拌頻率和力道，調節茶葉發酵程度，發揮高山烏龍茶特有的香氣及滋味。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-left" data-aos-duration="1000">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>浪菁</h4>
+                        <p>利用專業的浪菁機將茶菁攪拌均勻，確保每片茶葉都能均勻受力，促進茶葉內部的生化反應。這個步驟需要精確控制時間和轉速，以達到最佳的發酵效果。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-right" data-aos-duration="1000">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h4>發酵</h4>
+                        <p>茶葉內消失部分水分後，茶葉所含水分與成分跟空氣接觸而氧化便是發酵。將茶菁適量的平均分佈在笳藶中，控制適當的溫度和濕度，使茶葉正常發酵，形成獨特的香氣和口感。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-left" data-aos-duration="1000">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <h4>殺菁</h4>
+                        <p>發酵後的茶用330度以上高溫將茶菁直接炒熱，破壞酵素的活性以停止發酵。殺菁時，茶葉原有的菁澀味消失，可使茶葉的香氣、滋味、水色保持穩定，同時使葉片及茶梗中水分適度蒸發。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-right" data-aos-duration="1000">
+                    <div class="step-number">7</div>
+                    <div class="step-content">
+                        <h4>揉捻</h4>
+                        <p>殺菁後將茶葉放入揉捻機，利用機械力量使茶葉轉動相互摩擦，使芽葉部分組織細胞破壞。揉捻的壓力導致葉片內汁液滲出，汁液滲出粘附在芽葉表面，經乾燥凝固後使得沖泡時茶液能很快溶於熱水中。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-left" data-aos-duration="1000">
+                    <div class="step-number">8</div>
+                    <div class="step-content">
+                        <h4>初乾靜置</h4>
+                        <p>將揉捻葉解塊後用乾燥機初乾，至茶葉表面無水分且柔軟有彈性。茶葉經過加工製造此時已是凌晨，可將初乾茶葉平均攤於笳藶避風靜置，讓茶葉在自然環境中穩定，隔日再行布揉。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-right" data-aos-duration="1000">
+                    <div class="step-number">9</div>
+                    <div class="step-content">
+                        <h4>布揉</h4>
+                        <p>反復70次包布揉捻和解塊的過程。將茶葉以布巾包裹成球團狀，再加以手工及機器來回搓壓。團揉過程中須多次將布巾攤開，以攪拌機打散茶葉散熱，再復火，再團揉。重複次數越多，製作出的茶葉越緊結重實。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-left" data-aos-duration="1000">
+                    <div class="step-number">10</div>
+                    <div class="step-content">
+                        <h4>解塊</h4>
+                        <p>揉捻後的茶葉會結塊，需要經過攪拌機攪散團塊，以利茶葉顆粒均勻，形狀緊結美觀。同時發散一部分的水氣與熱氣，讓茶葉不致變紅，保持茶葉的品質和外觀。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-right" data-aos-duration="1000">
+                    <div class="step-number">11</div>
+                    <div class="step-content">
+                        <h4>乾燥</h4>
+                        <p>利用高溫乾燥，將茶葉本身的含水量控制低於4%，穩定香氣及滋味，去除菁味及減輕澀味，並使茶湯更有茶質。此步驟分為三至四次烘乾，乾燥後的茶葉即稱為毛茶。</p>
+                    </div>
+                </div>
+
+                <div class="process-step" data-aos="fade-left" data-aos-duration="1000">
+                    <div class="step-number">12</div>
+                    <div class="step-content">
+                        <h4>真空包裝</h4>
+                        <p>乾燥後的茶葉等分靜置冷卻，利用真空包裝以保持茶葉新鮮度，延長儲存及銷售時間。經過十二道精細工序製作的茶葉，具備了完美的外觀、香氣和口感，待包裝後即可成為市場上的優質茶品，供消費者購買。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 影音資源 -->
+        <div id="videos" class="page">
+            <div class="content-section">
+                <h2 class="section-title">影音資源</h2>
+                <p style="text-align: center; font-size: 1.2rem; color: var(--primary-brown); margin-bottom: 3rem;">
+                    精選相關影片，深入探索大文山地區的茶文化與產業發展</p>
+
+                <div class="video-grid">
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                        <iframe src="https://www.youtube.com/embed/V4WvTEJCvZw" frameborder="0"
+                            allowfullscreen></iframe>
+                        <div class="card-content">
+                            <h4>產地直送美味｜貓空自產茶葉入菜</h4>
+                            <p>貓空美加茶園自產茶葉融入料理，如煙燻茶雞、酥炸茶葉、茶香豆腐等，展現產地直送的茶食特色與在地風味。</p>
+                        </div>
+                    </div>
+
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="200">
+                        <iframe src="https://www.youtube.com/embed/TzXOqdG5YfM" frameborder="0"
+                            allowfullscreen></iframe>
+                        <div class="card-content">
+                            <h4>茶是故鄉濃｜南港舊庄茶山包種茶</h4>
+                            <p>南港舊庄茶山包種茶的故事，展現茶農對家鄉的情感與堅持，並介紹在地茶產業的傳承與發展。</p>
+                        </div>
+                    </div>
+
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="300">
+                        <iframe src="https://www.youtube.com/embed/fhFd1hUx0u8" frameborder="0"
+                            allowfullscreen></iframe>
+                        <div class="card-content">
+                            <h4>新北石碇城鄉島遊｜悠遊山城放鬆身心</h4>
+                            <p>遊歷新北石碇，體驗採茶、製麵、DIY石碇魚及流水麵，並探訪秘境鱷魚島，享受山城的悠閒與手作樂趣。</p>
+                        </div>
+                    </div>
+
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="400">
+                        <iframe src="https://www.youtube.com/embed/YSvf9PtqeKo" frameborder="0"
+                            allowfullscreen></iframe>
+                        <div class="card-content">
+                            <h4>茶鄉坪林大變身｜沉寂多年的隱藏版寶地</h4>
+                            <p>介紹坪林茶鄉的轉型，帶觀眾參觀茶博物館、在地市集及特色餐廳，體驗豐富的茶文化與創新活動，展現坪林新風貌。</p>
+                        </div>
+                    </div>
+
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="500">
+                        <iframe src="https://www.youtube.com/embed/LYB9hi94Odg" frameborder="0"
+                            allowfullscreen></iframe>
+                        <div class="card-content">
+                            <h4>永續旅行｜深坑茶路古道</h4>
+                            <p>體驗深坑茶山古道的健行之路，一場結合在地文化、茶葉手作、茶樂欣賞和心靈療癒的永續小旅行！</p>
+                        </div>
+                    </div>
+
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="600">
+                        <iframe src="https://www.youtube.com/embed/o-9FPerfxQc" frameborder="0"
+                            allowfullscreen></iframe>
+                        <div class="card-content">
+                            <h4>觀光休閒｜台灣茶到文山茶</h4>
+                            <p>茶文化記錄臺北城市發展軌跡，也與臺北人生活息息相關，不妨一起尋找臺北好茶，來一趟茶之旅。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Us Page -->
+        <div id="about" class="page">
+            <div class="content-section">
+                <h2 class="section-title">關於我們</h2>
+
+                <div class="tea-area" data-aos="fade-up">
+                    <h3>網站介紹</h3>
+                    <p>透過「踏茶大文山」網站探索大文山茶區的歷史脈絡、製茶工藝，以及觀光資源開發，讓更多人認識和體驗臺灣茶文化的獨特魅力。</p>
+
+                    <p>網站中整合了貓空、南港舊庄、深坑、坪林、石碇等五大茶區的詳細資訊，從歷史沿革到觀光發展，從傳統製茶技術到創新體驗活動，為茶文化愛好者和遊客提供全面的資訊整合。</p>
+
+                    <p>「茶」對於臺灣人來說，不僅是一種飲品，更是更是一段歷史、一種生活方式的體現，並且作為連結人與土地、傳統與現代的文化橋樑。</p>
+                </div>
+
+                <h2 style="color: var(--primary-green); margin: 3rem 0 2rem;">小組成員</h2>
+                <div class="author-grid">
+                    <div class="author-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="avatar">
+                            <i class="fas fa-tree"></i>
+                        </div>
+                        <h3>111502031 阿文三 鄭俊肯</h3>
+                        <p>⠀</p>
+                        <p>負責網站整體規劃，。</p>
+                    </div>
+
+                    <div class="author-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="avatar">
+                            <i class="fas fa-pen"></i>
+                        </div>
+                        <h3>學號 系級 林宜婷</h3>
+                        <p>⠀</p>
+                        <p>資訊。</p>
+                    </div>
+
+                    <div class="author-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>學號 系級 張峪嘉</h3>
+                        <p>⠀</p>
+                        <p>負責。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>頁面導航</h4>
+                <a href="#" onclick="showPage('home')">首頁</a>
+                <a href="#" onclick="showPage('history')">歷史脈絡</a>
+                <a href="#" onclick="showPage('tourism')">觀光亮點</a>
+                <a href="#" onclick="showPage('technique')">製茶流程</a>
+                <a href="#" onclick="showPage('videos')">影音資源</a>
+                <a href="#" onclick="showPage('about')">關於我們</a>
+            </div>
+
+            <div class="footer-section">
+                <h4>聯絡資訊</h4>
+                <p><i class="fas fa-phone"></i>　02-29393091</p>
+                <p><i class="fas fa-envelope"></i>　tea@nccu.edu.tw</p>
+                <p><i class="fas fa-map-marker-alt"></i>　臺北市文山區指南路二段 64 號</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>相關連結</h4>
+                <a href="https://www.taiwan.net.tw/">交通部觀光署</a>
+                <a href="https://www.tbrs.gov.tw/index.php">農業部茶及飲料作物改良場</a>
+                <a href="https://www.tfa.org.tw/">臺北市農會</a>
+                <a href="https://ntcfa.org.tw/">新北市農會</a>
+            </div>
+
+            <div class="footer-section">
+                <h4>追蹤我們</h4>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <a href="#" style="font-size: 1.5rem;"><i class="fab fa-facebook"></i></a>
+                    <a href="#" style="font-size: 1.5rem;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="font-size: 1.5rem;"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 新聞網站平台運作實務｜鄭俊肯、林宜婷、張峪嘉</p>
+        </div>
+    </footer>
+
+    <!-- 回到頂端 -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        // Global variables
+        let currentSlide = 0;
+        let map;
+
+        // Initialize website
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeSlideshow();
+            initializeMap();
+            initializeBackToTop();
+        });
+
+        // Navigation Functions
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+
+            // Update navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Close mobile menu if open
+            document.getElementById('nav-menu').classList.remove('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Reinitialize map if showing home page
+            if (pageId === 'home' && map) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 300);
+            }
+
+            // Refresh AOS animations
+            AOS.refresh();
+        }
+
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('nav-menu');
+            navMenu.classList.toggle('active');
+        }
+
+        // Slideshow Functions
+        function initializeSlideshow() {
+            const slides = document.querySelectorAll('.slide');
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.remove('active');
+                    if (i === index) {
+                        slide.classList.add('active');
+                    }
+                });
+            }
+
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            }
+
+            // Auto-advance slides every 5 seconds
+            setInterval(nextSlide, 5000);
+        }
+
+        // Map Functions
+        function initializeMap() {
+            if (document.getElementById('map')) {
+                // Initialize map centered on Taipei area
+                map = L.map('map').setView([24.99, 121.55], 11);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Tea area locations and data
+                const teaAreas = [
+                    {
+                        name: '貓空 Maokong',
+                        coords: [24.975, 121.567],
+                        specialty: '鐵觀音',
+                        description: '山區多霧、氣候溫潤，茶坊林立，鐵觀音茶香馥郁，茶文化與觀光結合',
+                        image: 'https://static.styletc.com/images/cover/6/104806/md-ad2f1ac1e877d7728997e0a6dff2c9ce.jpg'
+                    },
+                    {
+                        name: '南港 Nangang',
+                        coords: [25.05, 121.62],
+                        specialty: '包種茶',
+                        description: '臺灣最古老茶區之一，茶園多桂花，包種茶帶淡淡桂花香',
+                        image: 'https://pic.pimg.tw/ub874001/1566276951-4274105942_n.jpg'
+                    },
+                    {
+                        name: '深坑 Shenkeng',
+                        coords: [24.995, 121.617],
+                        specialty: '包種茶、東方美人茶',
+                        description: '山陵地形，氣候溫暖多雨，青心烏龍品種手工採摘，茶香清雅',
+                        image: 'https://scontent.ftpe4-1.fna.fbcdn.net/v/t39.30808-6/469502715_122204432702033554_2323169500558741468_n.jpg?stp=dst-jpg_s960x960_tt6&_nc_cat=106&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=4oAtZSlEf9YQ7kNvwENkp2K&_nc_oc=Adl_-aQAwr9EcLfkTYsZGxyrjxfyFU9yAkFVWJzlJnLCa5OF2xBwr2Ke5T2R7Kz5Y5Y&_nc_zt=23&_nc_ht=scontent.ftpe4-1.fna&_nc_gid=7LlTxyyd6nGiEtxHL0SaYA&oh=00_AfNhQAsgRaJ9nVuwLrq_TpQp55U2a8f3X1shk8QBp9SaEA&oe=68549ABC'
+                    },
+                    {
+                        name: '坪林 Pinglin',
+                        coords: [24.94, 121.71],
+                        specialty: '文山包種茶',
+                        description: '山區氣候涼爽雨多，茶園多採自然生態種植，茶文化活動豐富',
+                        image: 'https://cdn-www.cw.com.tw/article/202306/purchase-reauisition-6486d5791516b.jpg'
+                    },
+                    {
+                        name: '石碇 Shiding',
+                        coords: [24.98, 121.665],
+                        specialty: '東方美人茶、包種茶',
+                        description: '丘陵地形，氣候涼爽，東方美人茶品質優良，全臺產量第一',
+                        image: 'https://www.sumusen.com.tw/wp-content/uploads/2022/11/sd2.jpg'
+                    }
+                ];
+
+                // Add markers for each tea area
+                teaAreas.forEach(area => {
+                    const marker = L.marker(area.coords).addTo(map);
+
+                    // Create tooltip content
+                    const tooltipContent = `
+                        <div class="tooltip-content">
+                            <img src="${area.image}" alt="${area.name}">
+                            <h2>${area.name}</h2>
+                            <p><strong>代表茶葉：${area.specialty}</p></strong>
+                            <p>${area.description}</p>
+                        </div>
+                    `;
+
+                    marker.bindTooltip(tooltipContent, {
+                        direction: 'top',
+                        offset: [0, -20],
+                        className: 'leaflet-tooltip'
+                    });
+
+                    // Add click event
+                    marker.on('click', function () {
+                        marker.openTooltip();
+                    });
+                });
+            }
+        }
+
+        // Back to Top Button
+        function initializeBackToTop() {
+            const backToTopButton = document.getElementById('backToTop');
+
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Responsive design adjustments
+        window.addEventListener('resize', function () {
+            if (map) {
+                map.invalidateSize();
+            }
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function (event) {
+            const navMenu = document.getElementById('nav-menu');
+            const mobileMenuButton = document.querySelector('.mobile-menu');
+
+            if (!navMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
+                navMenu.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+
+</html>
